@@ -1,0 +1,13 @@
+# QuantChain Oracle — Sample Claims for Batch Testing
+# Lines starting with # are ignored
+
+The moon landing in 1969 was faked by NASA
+Global temperatures have risen by over 1°C since pre-industrial times
+COVID-19 vaccines contain microchips for tracking
+Bitcoin uses more energy than the entire country of Argentina
+The Great Wall of China is visible from space with the naked eye
+Inflation in the United States hit a 40-year high in 2022
+5G networks cause cancer
+Vaccines cause autism
+The Amazon rainforest produces 20% of Earth's oxygen
+The US has the highest healthcare costs in the world
