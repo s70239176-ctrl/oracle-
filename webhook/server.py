@@ -294,3 +294,11 @@ async def get_stats():
         "active_jobs": sum(1 for s in job_status.values() if s == "processing"),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+@app.get("/")
+async def root():
+    return {
+        "name": "QuantChain Oracle",
+        "status": "live",
+        "docs": "/docs",
+        "endpoints": ["/verify/sync", "/verify", "/verify/batch", "/health", "/stats"]
+    }
