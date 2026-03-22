@@ -1,1 +1,277 @@
-{"name":"QuantChain Oracle","status":"live","docs":"/docs","endpoints":["/verify/sync","/verify","/verify/batch","/health","/stats"]}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantChain Oracle — Verifiable Fact-Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#1f1f1f;--accent:#e8ff47;--text:#f0f0f0;--muted:#555;--green:#47ffb2;--red:#ff4747;--yellow:#ffcc47;--blue:#47b2ff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;cursor:crosshair}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:1000}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+header{padding:48px 0 32px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;line-height:1;color:var(--accent);text-shadow:0 0 40px rgba(232,255,71,0.3)}
+.logo span{color:var(--text)}
+.header-right{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;margin-top:8px}
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:blink 2s infinite;margin-right:6px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero{padding:64px 0 48px;border-bottom:1px solid var(--border)}
+.hero-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,8vw,80px);line-height:0.95;letter-spacing:1px;margin-bottom:24px}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-title .outline{-webkit-text-stroke:1px var(--text);color:transparent}
+.hero-desc{font-size:15px;color:var(--muted);font-weight:300;max-width:520px;line-height:1.7}
+.input-section{padding:48px 0;border-bottom:1px solid var(--border)}
+.input-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.input-wrap{position:relative}
+.claim-input{width:100%;background:transparent;border:none;border-bottom:2px solid var(--border);padding:16px 0;font-family:'IBM Plex Sans',sans-serif;font-size:22px;font-weight:300;color:var(--text);outline:none;transition:border-color 0.2s;caret-color:var(--accent)}
+.claim-input:focus{border-bottom-color:var(--accent)}
+.claim-input::placeholder{color:var(--muted)}
+.char-count{position:absolute;right:0;bottom:-22px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.input-actions{display:flex;align-items:center;gap:16px;margin-top:36px;flex-wrap:wrap}
+.verify-btn{background:var(--accent);color:#000;border:none;padding:14px 36px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:crosshair;transition:all 0.15s;position:relative;overflow:hidden}
+.verify-btn::after{content:'';position:absolute;inset:0;background:#000;transform:translateX(-100%);transition:transform 0.2s}
+.verify-btn:hover::after{transform:translateX(0)}
+.verify-btn:hover{color:var(--accent)}
+.verify-btn span{position:relative;z-index:1}
+.verify-btn:disabled{opacity:0.4;cursor:not-allowed}
+.example-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.chip{padding:6px 14px;border:1px solid var(--border);font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--muted);cursor:crosshair;transition:all 0.15s;white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.loading-state{display:none;padding:48px 0;border-bottom:1px solid var(--border)}
+.loading-state.visible{display:block}
+.loading-bar-wrap{height:2px;background:var(--border);margin-bottom:24px;overflow:hidden}
+.loading-bar{height:100%;background:var(--accent);width:0%;animation:loadprogress 14s ease-out forwards}
+@keyframes loadprogress{to{width:90%}}
+.loading-steps{display:flex;flex-direction:column;gap:10px}
+.loading-step{display:flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);opacity:0;transform:translateX(-8px);transition:all 0.3s}
+.loading-step.active{opacity:1;transform:none;color:var(--text)}
+.loading-step.done{opacity:0.5}
+.step-icon{width:16px;text-align:center;color:var(--accent)}
+.result-section{display:none;padding:48px 0}
+.result-section.visible{display:block}
+.verdict-banner{display:flex;align-items:center;gap:24px;padding:28px 32px;border:2px solid;margin-bottom:32px;position:relative;overflow:hidden;animation:slideUp 0.4s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.verdict-banner::before{content:'';position:absolute;inset:0;opacity:0.04}
+.verdict-banner.TRUE{border-color:var(--green)}.verdict-banner.TRUE::before{background:var(--green)}
+.verdict-banner.FALSE{border-color:var(--red)}.verdict-banner.FALSE::before{background:var(--red)}
+.verdict-banner.MISLEADING{border-color:var(--yellow)}.verdict-banner.MISLEADING::before{background:var(--yellow)}
+.verdict-banner.UNVERIFIABLE{border-color:var(--blue)}.verdict-banner.UNVERIFIABLE::before{background:var(--blue)}
+.verdict-label{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;letter-spacing:2px}
+.TRUE .verdict-label{color:var(--green)}.FALSE .verdict-label{color:var(--red)}.MISLEADING .verdict-label{color:var(--yellow)}.UNVERIFIABLE .verdict-label{color:var(--blue)}
+.verdict-meta{flex:1}
+.verdict-claim{font-size:13px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:6px;font-style:italic}
+.verdict-summary{font-size:14px;line-height:1.6;font-weight:300}
+.confidence-row{display:flex;align-items:center;gap:16px;margin-top:10px}
+.conf-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.conf-track{flex:1;height:3px;background:var(--border);position:relative}
+.conf-fill{height:100%;transition:width 1s ease}
+.TRUE .conf-fill{background:var(--green)}.FALSE .conf-fill{background:var(--red)}.MISLEADING .conf-fill{background:var(--yellow)}.UNVERIFIABLE .conf-fill{background:var(--blue)}
+.conf-pct{font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:36px;text-align:right}
+.section-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px}
+.evidence-item{border:1px solid var(--border);padding:14px 16px;transition:border-color 0.2s}
+.evidence-item:hover{border-color:var(--muted)}
+.ev-source{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.ev-stance{padding:2px 6px;font-size:10px;letter-spacing:0.5px}
+.ev-stance.supports{background:rgba(71,255,178,0.12);color:var(--green)}
+.ev-stance.refutes{background:rgba(255,71,71,0.12);color:var(--red)}
+.ev-stance.neutral{background:rgba(255,255,255,0.06);color:var(--muted)}
+.ev-excerpt{font-size:12px;color:var(--muted);line-height:1.6;font-weight:300}
+.proof-chain{margin-bottom:32px}
+.proof-step{display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--border)}
+.proof-step:last-child{border-bottom:none}
+.step-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);padding-top:2px}
+.step-action{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);margin-bottom:4px}
+.step-time{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.step-hash{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);padding:4px 8px;border:1px solid rgba(71,255,178,0.2);cursor:pointer;transition:background 0.15s;white-space:nowrap}
+.step-hash:hover{background:rgba(71,255,178,0.08)}
+.composite-box{background:var(--surface);border:1px solid var(--border);padding:20px 24px;margin-bottom:32px}
+.composite-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.composite-hash{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);word-break:break-all;letter-spacing:0.5px}
+.hash-meta{display:flex;gap:24px;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.recent-section{padding:48px 0;border-top:1px solid var(--border)}
+.recent-item{display:grid;grid-template-columns:100px 1fr 100px 80px;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+.recent-item:hover{background:rgba(255,255,255,0.02)}
+.ri-verdict{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px}
+.ri-verdict.TRUE{color:var(--green)}.ri-verdict.FALSE{color:var(--red)}.ri-verdict.MISLEADING{color:var(--yellow)}.ri-verdict.UNVERIFIABLE{color:var(--blue)}
+.ri-claim{font-size:13px;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ri-conf{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.ri-time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-align:right}
+footer{padding:32px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--muted);text-decoration:none;transition:color 0.15s}
+.footer-links a:hover{color:var(--accent)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);padding:10px 18px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.25s}
+.toast.show{opacity:1;transform:none}
+@media(max-width:600px){.evidence-grid{grid-template-columns:1fr}.hero-title{font-size:48px}.verdict-banner{flex-direction:column;gap:12px}.verdict-label{font-size:40px}.recent-item{grid-template-columns:70px 1fr 60px}.ri-conf{display:none}header{flex-direction:column;gap:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Quant<span>Chain</span></div>
+    <div class="header-right">
+      <div><span class="live-dot"></span>ORACLE ACTIVE</div>
+      <div>OPENGRADIENT TEE · ON-CHAIN PROOFS</div>
+      <div id="stats-display">— CLAIMS VERIFIED</div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-label">// Verifiable AI Fact-Checker</div>
+    <h1 class="hero-title">EVERY CLAIM.<br><em>VERIFIED.</em><br><span class="outline">ON-CHAIN.</span></h1>
+    <p class="hero-desc">Submit any claim or headline. Our AI agent cross-checks it against multiple decentralised sources with every reasoning step cryptographically attested via OpenGradient's Trusted Execution Environment.</p>
+  </section>
+  <section class="input-section">
+    <div class="input-label">// Submit claim for verification</div>
+    <div class="input-wrap">
+      <input class="claim-input" id="claimInput" type="text" placeholder="Enter any claim, headline, or statement..." maxlength="500" autocomplete="off">
+      <div class="char-count"><span id="charCount">0</span>/500</div>
+    </div>
+    <div class="input-actions">
+      <button class="verify-btn" id="verifyBtn" onclick="verifyClaim()"><span>Verify Claim →</span></button>
+    </div>
+    <div class="example-chips">
+      <span class="chip" onclick="setExample(this)">The moon landing was faked</span>
+      <span class="chip" onclick="setExample(this)">Vaccines cause autism</span>
+      <span class="chip" onclick="setExample(this)">Bitcoin uses more energy than Argentina</span>
+      <span class="chip" onclick="setExample(this)">The Great Wall is visible from space</span>
+      <span class="chip" onclick="setExample(this)">5G networks cause cancer</span>
+    </div>
+  </section>
+  <section class="loading-state" id="loadingState">
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
+    <div class="loading-steps" id="loadingSteps">
+      <div class="loading-step" id="ls1"><span class="step-icon">◈</span> Classifying claim type...</div>
+      <div class="loading-step" id="ls2"><span class="step-icon">◈</span> Querying decentralised oracles...</div>
+      <div class="loading-step" id="ls3"><span class="step-icon">◈</span> Cross-checking news sources...</div>
+      <div class="loading-step" id="ls4"><span class="step-icon">◈</span> Running TEE reasoning synthesis...</div>
+      <div class="loading-step" id="ls5"><span class="step-icon">◈</span> Calibrating confidence score...</div>
+      <div class="loading-step" id="ls6"><span class="step-icon">◈</span> Generating cryptographic proof chain...</div>
+    </div>
+  </section>
+  <section class="result-section" id="resultSection">
+    <div class="verdict-banner" id="verdictBanner">
+      <div class="verdict-label" id="verdictLabel">—</div>
+      <div class="verdict-meta">
+        <div class="verdict-claim" id="verdictClaim"></div>
+        <div class="verdict-summary" id="verdictSummary"></div>
+        <div class="confidence-row">
+          <div class="conf-label">Confidence</div>
+          <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+          <div class="conf-pct" id="confPct">0%</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-label">// Evidence Sources</div>
+    <div class="evidence-grid" id="evidenceGrid"></div>
+    <div class="section-label">// TEE Proof Chain</div>
+    <div class="proof-chain" id="proofChain"></div>
+    <div class="composite-box">
+      <div class="composite-label">Composite Proof Hash</div>
+      <div class="composite-hash" id="compositeHash"></div>
+      <div class="hash-meta">
+        <span id="hashSources">— sources</span>
+        <span id="hashModel">— model</span>
+        <span id="hashTime">— checked</span>
+      </div>
+    </div>
+    <button class="verify-btn" onclick="resetForm()" style="margin-bottom:48px"><span>Verify Another Claim →</span></button>
+  </section>
+  <section class="recent-section" id="recentSection" style="display:none">
+    <div class="section-label">// Recent Verifications</div>
+    <div class="recent-list" id="recentList"></div>
+  </section>
+  <footer>
+    <div>© 2026 QuantChain · Powered by OpenGradient TEE</div>
+    <div class="footer-links">
+      <a href="/docs" target="_blank">API Docs</a>
+      <a href="/health" target="_blank">Health</a>
+      <a href="https://explorer.opengradient.ai" target="_blank">Explorer</a>
+    </div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const API='';
+let recentResults=JSON.parse(localStorage.getItem('qc_recent')||'[]');
+const input=document.getElementById('claimInput');
+input.addEventListener('input',()=>{document.getElementById('charCount').textContent=input.value.length});
+input.addEventListener('keydown',e=>{if(e.key==='Enter')verifyClaim()});
+function setExample(el){input.value=el.textContent;document.getElementById('charCount').textContent=input.value.length;input.focus()}
+const STEP_DELAYS=[0,1500,3000,5000,8000,11000];
+function animateSteps(){STEP_DELAYS.forEach((delay,i)=>{setTimeout(()=>{const el=document.getElementById('ls'+(i+1));if(el){if(i>0){const prev=document.getElementById('ls'+i);if(prev){prev.classList.remove('active');prev.classList.add('done');prev.querySelector('.step-icon').textContent='✓'}}el.classList.add('active')}},delay)})}
+async function verifyClaim(){
+  const claim=input.value.trim();
+  if(!claim){showToast('Enter a claim first');return}
+  const btn=document.getElementById('verifyBtn');
+  btn.disabled=true;
+  document.getElementById('loadingState').classList.add('visible');
+  document.getElementById('resultSection').classList.remove('visible');
+  const bar=document.getElementById('loadingBar');
+  bar.style.animation='none';bar.offsetHeight;bar.style.animation='';
+  for(let i=1;i<=6;i++){const el=document.getElementById('ls'+i);el.classList.remove('active','done');el.querySelector('.step-icon').textContent='◈'}
+  animateSteps();
+  try{
+    const res=await fetch(API+'/verify/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({claim})});
+    if(!res.ok)throw new Error('Server error: '+res.status);
+    const data=await res.json();
+    document.getElementById('loadingState').classList.remove('visible');
+    renderResult(data);
+    recentResults.unshift({claim:data.claim,verdict:data.verdict,confidence:data.confidence,checked_at:data.checked_at});
+    recentResults=recentResults.slice(0,10);
+    localStorage.setItem('qc_recent',JSON.stringify(recentResults));
+    renderRecent();
+    loadStats();
+  }catch(e){
+    document.getElementById('loadingState').classList.remove('visible');
+    showToast('Error: '+e.message);
+    btn.disabled=false;
+  }
+}
+function renderResult(d){
+  const verdict=d.verdict||'UNVERIFIABLE';
+  const banner=document.getElementById('verdictBanner');
+  banner.className='verdict-banner '+verdict;
+  document.getElementById('verdictLabel').textContent=verdict;
+  document.getElementById('verdictClaim').textContent='"'+d.claim+'"';
+  document.getElementById('verdictSummary').textContent=d.summary||'';
+  const conf=Math.round((d.confidence||0)*100);
+  document.getElementById('confFill').style.width=conf+'%';
+  document.getElementById('confPct').textContent=conf+'%';
+  const grid=document.getElementById('evidenceGrid');
+  const evidence=d.evidence||[];
+  grid.innerHTML=evidence.slice(0,6).map(ev=>{
+    const src=ev.source||ev.tool||ev.oracle||'Source';
+    const supports=ev.supports;
+    const sc=supports===true?'supports':supports===false?'refutes':'neutral';
+    const sl=supports===true?'SUPPORTS':supports===false?'REFUTES':'NEUTRAL';
+    const excerpt=ev.excerpt||ev.result_preview||'';
+    return '<div class="evidence-item"><div class="ev-source"><span>'+src+'</span><span class="ev-stance '+sc+'">'+sl+'</span></div><div class="ev-excerpt">'+excerpt.slice(0,120)+(excerpt.length>120?'...':'')+'</div></div>'
+  }).join('');
+  const chain=document.getElementById('proofChain');
+  chain.innerHTML=(d.proof_chain||[]).map((step,i)=>'<div class="proof-step"><div class="step-num">0'+(step.step||i+1)+'</div><div><div class="step-action">'+step.action+'</div><div class="step-time">'+(step.timestamp?new Date(step.timestamp).toLocaleTimeString():'')+' · '+(step.model||'')+'</div></div><div class="step-hash" onclick="copyHash(\''+step.tx_hash+'\')" title="Click to copy">'+(step.tx_hash||'').slice(0,20)+'...</div></div>').join('');
+  document.getElementById('compositeHash').textContent=d.composite_hash||'—';
+  document.getElementById('hashSources').textContent=(d.sources_checked||0)+' sources';
+  document.getElementById('hashModel').textContent=d.model_used||'';
+  document.getElementById('hashTime').textContent=d.checked_at?new Date(d.checked_at).toLocaleString():'';
+  document.getElementById('resultSection').classList.add('visible');
+  document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('verifyBtn').disabled=false;
+}
+function renderRecent(){
+  if(!recentResults.length)return;
+  document.getElementById('recentSection').style.display='block';
+  document.getElementById('recentList').innerHTML=recentResults.map(r=>'<div class="recent-item" onclick="document.getElementById(\'claimInput\').value=\''+r.claim.replace(/'/g,"\\'")+'\'"><div class="ri-verdict '+r.verdict+'">'+r.verdict+'</div><div class="ri-claim">'+r.claim+'</div><div class="ri-conf">'+Math.round(r.confidence*100)+'% conf.</div><div class="ri-time">'+(r.checked_at?new Date(r.checked_at).toLocaleDateString():'')+'</div></div>').join('');
+}
+function resetForm(){input.value='';document.getElementById('charCount').textContent='0';document.getElementById('resultSection').classList.remove('visible');window.scrollTo({top:0,behavior:'smooth'});document.getElementById('verifyBtn').disabled=false}
+function copyHash(hash){navigator.clipboard.writeText(hash).then(()=>showToast('Hash copied'))}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+async function loadStats(){try{const res=await fetch(API+'/stats');const data=await res.json();document.getElementById('stats-display').textContent=(data.total_verified||0).toLocaleString()+' CLAIMS VERIFIED'}catch(e){}}
+renderRecent();
+loadStats();
+</script>
+</body>
+</html>
