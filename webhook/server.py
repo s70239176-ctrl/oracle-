@@ -231,3 +231,14 @@ async def get_stats():
             v = r.get("verdict", "UNKNOWN")
             verdicts[v] = verdicts.get(v, 0) + 1
     return {"total_verified": len(keys), "verdict_breakdown": verdicts, "storage": "redis" if _redis else "in-memory", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+import traceback
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    tb = traceback.format_exc()
+    print(f"UNHANDLED ERROR:\n{tb}")
+    return JSONResponse(status_code=500, content={"detail": str(exc), "traceback": tb})
