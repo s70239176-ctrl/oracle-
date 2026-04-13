@@ -1,4 +1,4 @@
-opengradient>=0.8.0
+opengradient
 langchain-core>=0.3.0
 langgraph>=0.2.0
 langchain>=0.3.0
