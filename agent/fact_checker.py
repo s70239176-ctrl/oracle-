@@ -98,7 +98,7 @@ class FactCheckerAgent:
             )
         # v0.8.0 API: og.LLM instead of og.Client
         self.llm = og.LLM(private_key=pk)
-        self.llm.ensure_opg_approval(opg_amount=5.0)
+        self.llm.ensure_opg_approval()
         self.model = model
         self.settlement = settlement
         self.verbose = verbose
